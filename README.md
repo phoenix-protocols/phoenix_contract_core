@@ -1,32 +1,36 @@
-# Phoenix Protocol - Token Contracts
+# Phoenix Protocol - Core Contracts
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.20-blue.svg)](https://docs.soliditylang.org/)
 [![Foundry](https://img.shields.io/badge/Built%20with-Foundry-orange.svg)](https://book.getfoundry.sh/)
 
-Phoenix Protocol's core token contracts - PUSD stablecoin, yPUSD yield token, and NFTManager for staking positions.
+Phoenix Protocol's core DeFi contracts - Farm staking, Vault asset management, Oracle price feeds, and Referral rewards system.
 
 ## Contracts
 
 | Contract | Description |
 |----------|-------------|
-| **PUSD** | Phoenix USD - Upgradeable stablecoin with mint/burn controls |
-| **yPUSD** | Yield-bearing PUSD wrapper token (ERC4626 vault) |
-| **NFTManager** | ERC721 NFT representing staking positions |
+| **Farm** | Main staking pool with lock periods and yield distribution |
+| **FarmLend** | Lending extension for Farm positions |
+| **Vault** | Multi-asset vault for stablecoin deposits (USDT, USDC) |
+| **PUSDOracle** | Chainlink-based price oracle for PUSD peg |
+| **UniswapV3Oracle** | DEX TWAP oracle for price feeds |
+| **ReferralRewardManager** | Referral bonus distribution system |
 
 ## Features
 
 - 🔐 **UUPS Upgradeable** - All contracts support secure upgrades
 - 🎯 **Role-based Access Control** - Granular permissions with OpenZeppelin AccessControl
-- 💰 **ERC4626 Vault** - yPUSD implements standard tokenized vault interface
-- 🖼️ **On-chain Metadata** - NFT stake records stored entirely on-chain
+- ⏰ **Lock Period Multipliers** - 7d/30d/90d/365d staking with boosted rewards
+- 🔗 **Chainlink Integration** - Reliable price feeds for oracle
+- 💸 **Multi-asset Vault** - Support for multiple stablecoins
 
 ## Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/phoenix-protocols/phoenix_contract.git
-cd phoenix_contract
+git clone https://github.com/phoenix-protocols/phoenix_contract_core.git
+cd phoenix_contract_core
 
 # Install dependencies
 forge install
@@ -42,52 +46,56 @@ forge test
 
 ```
 src/
-├── token/
-│   ├── PUSD/
-│   │   ├── PUSD.sol          # Main PUSD token contract
-│   │   └── PUSDStorage.sol   # Storage layout
-│   ├── yPUSD/
-│   │   ├── yPUSD.sol         # ERC4626 yield token
-│   │   └── yPUSDStorage.sol  # Storage layout
-│   └── NFTManager/
-│       ├── NFTManager.sol    # Staking position NFTs
-│       └── NFTManagerStorage.sol
+├── Farm/
+│   ├── Farm.sol              # Main staking contract
+│   ├── FarmStorage.sol       # Storage layout
+│   ├── FarmLend.sol          # Lending extension
+│   └── FarmLendStorage.sol
+├── Vault/
+│   ├── Vault.sol             # Multi-asset vault
+│   └── VaultStorage.sol
+├── Oracle/
+│   ├── PUSDOracle.sol        # Chainlink price oracle
+│   ├── UniswapV3Oracle.sol   # DEX TWAP oracle
+│   └── *Storage.sol
+├── Referral/
+│   ├── ReferralRewardManager.sol
+│   └── ReferralRewardManagerStorage.sol
+├── libraries/
+│   ├── FullMath.sol
+│   ├── TickMath.sol
+│   └── UniswapV2Library.sol
 └── interfaces/
-    ├── IPUSD.sol
-    ├── IyPUSD.sol
-    ├── INFTManager.sol
-    └── IFarm.sol
+    ├── IFarm.sol
+    ├── IFarmLend.sol
+    ├── IVault.sol
+    ├── IPUSDOracle.sol
+    └── ...
 ```
 
-## Deployment
+## Key Parameters
 
-```bash
-# Set environment variables
-export ADMIN=0x...
-export SALT=0x...
-export PUSD_CAP=1000000000000000  # 1B PUSD (6 decimals)
-
-# Deploy PUSD
-forge script script/token/PUSD_Deployer.s.sol --rpc-url $RPC_URL --broadcast
-
-# Deploy yPUSD (requires PUSD address)
-export PUSD=0x...
-export YPUSD_CAP=1000000000000000
-forge script script/token/yPUSD_Deployer.s.sol --rpc-url $RPC_URL --broadcast
-
-# Deploy NFTManager
-export NAME="Phoenix Stake NFT"
-export SYMBOL="pxNFT"
-export FARM=0x...  # Can be address(0) initially
-forge script script/token/NFTManager_Deployer.s.sol --rpc-url $RPC_URL --broadcast
-```
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| Base APY | 15% | Default staking yield |
+| 7-day Lock | 1.0x | No bonus |
+| 30-day Lock | 1.2x | 20% bonus |
+| 90-day Lock | 1.5x | 50% bonus |
+| 365-day Lock | 2.0x | 100% bonus |
+| Withdraw Fee | 0.5% | Early withdrawal fee |
 
 ## Security
 
 - ✅ Audited by [Auditor Name - Coming Soon]
 - ✅ UUPS upgrade pattern with role-based authorization
 - ✅ Reentrancy protection on sensitive functions
-- ✅ Supply cap enforcement
+- ✅ Chainlink oracle with staleness checks
+
+## Dependencies
+
+- OpenZeppelin Contracts v4.9.x (Upgradeable)
+- Chainlink Contracts
+- Uniswap V3 Core
 
 ## License
 
@@ -97,5 +105,3 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 - 🌐 Website: [phoenix.finance](https://phoenix.finance)
 - 📖 Documentation: [docs.phoenix.finance](https://docs.phoenix.finance)
-- 🐦 Twitter: [@PhoenixProtocol](https://twitter.com/PhoenixProtocol)
-- 💬 Discord: [discord.gg/phoenix](https://discord.gg/phoenix)
